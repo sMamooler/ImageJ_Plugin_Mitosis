@@ -1,4 +1,3 @@
-package mini_project;
 import java.awt.Color;
 
 import ij.gui.Line;
