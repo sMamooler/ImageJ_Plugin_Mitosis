@@ -12,13 +12,17 @@ import ij.process.ImageProcessor;
 public class Mitosis implements PlugIn {
 
 	public void run(String arg) {
-		
-		/*lambda to be changed*/
-		double lambda = 0; 
+		ImagePlus original = IJ.getImage();
+		IJ.run(original, "Duplicate...", "title=red_ds_copy.tif duplicate");
+		IJ.selectWindow("red_ds_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
 		ArrayList<Spot> spots[] = detect(imp);
 		
+		// link the current spot with the next one using the nearest neighbor method
+		
+		/*lambda to be changed*/
+		double lambda = 0.05; 
 		ImageProcessor ip = imp.getProcessor();
 
 		for (int t = 0; t < nt - 1; t++) {
@@ -78,8 +82,7 @@ public class Mitosis implements PlugIn {
 		Overlay overlay = new Overlay();
 		draw(overlay, spots);
 		System.out.println("finished drawing");
-		imp.setOverlay(overlay);
-		
+		original.setOverlay(overlay);
 	}
 
 	/*function to calculate a better cost function*/
@@ -111,7 +114,6 @@ public class Mitosis implements PlugIn {
 		
 		// pre-process 
 		IJ.run(imp, "Median...", "radius=2 stack");
-		IJ.run(imp, "Duplicate...", "title=nucleus-copy.tif duplicate");
 		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
 		IJ.run(imp,  "Gray Morphology", "radius=1 type=circle operator=open");
 		
