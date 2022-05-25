@@ -19,40 +19,22 @@ public class Mitosis implements PlugIn {
 		int nt = imp.getNSlices();
 		ArrayList<Spot> spots[] = detect(imp);
 		
-		// calculate dmax and fmax for each frame and store them in a list all_dmax and all_fmax
-		Double all_dmax[] = new Double[nt];
-		Double all_fmax[] = new Double[nt];
 		ImageProcessor ip = imp.getProcessor();
 
 		for (int t = 0; t < nt - 1; t++) {
 			double dmax = 0;
 			double fmax = 0;
 			for (Spot current : spots[t]) {
-				for (Spot next : spots[t+1]) {
-					/*set dmax*/
-					if (current.distance(next) > dmax)
-						dmax = current.distance(next);
-					/*set fmax*/
-					imp.setPosition(1, 1, t);
-					double fc = ip.getPixelValue(current.x, current.y);
-					imp.setPosition(1, 1, t + 1);
-					double fn = ip.getPixelValue(next.x, next.y);
-					if (Math.abs(fc - fn) > fmax)
-						fmax = Math.abs(fc - fn);
-				}
-			}
-			all_dmax[t] = dmax;
-			all_fmax[t] = fmax;
-		}
-
-		// link the current spot with the next one using the nearest neighbor method
-		for (int t = 0; t < nt - 1; t++) {
-			for (Spot current : spots[t]) {
-				double dmax = all_dmax[t];
-				double fmax = all_fmax[t];
 				double c_init = Double.MAX_VALUE;
+				double fc = ip.getPixelValue(current.x, current.y);
 				Spot min_spot = null;
-						
+				imp.setSlice(t + 1);
+				for (Spot next : spots[t+1]) {
+					dmax = Math.max(dmax, current.distance(next));
+					double fn = ip.getPixelValue(next.x, next.y);
+					fmax = Math.max(fmax, Math.abs(fc - fn));
+				}
+				imp.setSlice(t);		
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
 					double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
