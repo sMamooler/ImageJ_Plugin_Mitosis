@@ -19,6 +19,11 @@ public class Mitosis implements PlugIn {
 		int nt = imp.getNSlices();
 		ArrayList<Spot> spots[] = detect(imp);
 		
+		int nb_nucleus[] = new int[nt];
+		for(int t=0; t<nt; t++) {
+			nb_nucleus[t] = spots[t].size();
+		}
+		
 		// calculate dmax and fmax for each frame and store them in a list all_dmax and all_fmax
 		Double all_dmax[] = new Double[nt];
 		Double all_fmax[] = new Double[nt];
@@ -128,30 +133,32 @@ public class Mitosis implements PlugIn {
 	private Spots[] detect(ImagePlus imp) {
 		
 		// pre-process 
-		IJ.run(imp, "Median...", "radius=2 stack");
+		ImagePlus imp_copy = imp.duplicate();
+		IJ.run(imp_copy, "Median...", "radius=2 stack");
+		// TODO: do we still need this duplicate considering that we copy above?
 		IJ.run(imp, "Duplicate...", "title=nucleus-copy.tif duplicate");
-		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
-		IJ.run(imp,  "Gray Morphology", "radius=1 type=circle operator=open");
+		IJ.run(imp_copy, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
+		IJ.run(imp_copy,  "Gray Morphology", "radius=1 type=circle operator=open");
 		
-		// TODO: to be checked, not sure. The Macro is setOption("BlackBackground", false);
 		IJ.setBackgroundColor(0, 0, 0);
 		
 		IJ.run("Convert to Mask", "method=Default background=Default calculate");
 		
 	
-		int nt = imp.getNSlices();
+		int nt = imp_copy.getNSlices();
 		Spots spots[] = new Spots[nt];
+		
 		
 
 		for(int t=0; t<nt; t++) {
 			System.out.println("frame"+t);
-			imp.setSlice(t+1);
+			imp_copy.setSlice(t+1);
 			IJ.run("Set Measurements...", "centroid redirect=None decimal=3");
-			IJ.run(imp, "Analyze Particles...", "size=36-Infinity add");
+			IJ.run(imp_copy, "Analyze Particles...", "size=36-Infinity add");
 			
 			RoiManager rm =  RoiManager.getInstance();
 			rm.deselect();
-			ResultsTable measures = rm.multiMeasure(imp);
+			ResultsTable measures = rm.multiMeasure(imp_copy);
 			IJ.run("From ROI Manager", "");
 			
 			int nb_particles = rm.getCount();
@@ -159,78 +166,25 @@ public class Mitosis implements PlugIn {
 			
 			for(int p=0; p<nb_particles; p++) {
 				
-				// get the periphery by xoring the roi with a one 5 times bigger
-				// TODO: change the color to green (outer) and red (inner)
 				Roi roi = rm.getRoi(p);
 				
 				int x = (int) measures.getColumnAsDoubles(2*p)[t];
 				int y = (int) measures.getColumnAsDoubles(2*p+1)[t];
 				Spot spot = new Spot(x, y, t, roi);
 				spots[t].add(spot);
-				//Roi big_roi = RoiEnlarger.enlarge(roi, 5);
-				//rm.addRoi(big_roi);
-				//rm.setSelectedIndexes(new int[] {t,nb_particles});
 			
 				
 			}
 		
 			// clean ROI manager for the next iteration
-			IJ.run(imp, "Select All", "");
-			rm.runCommand(imp,"Delete");
+			IJ.run(imp_copy, "Select All", "");
+			rm.runCommand(imp_copy,"Delete");
 			
 		}
 		
 		return spots;
 	}
 
-//	private ArrayList<Spot>[] filter(ImagePlus dog, ArrayList<Spot> spots[], double threshold) {
-//		int nt = spots.length;
-//		ArrayList<Spot> out[] = new Spots[nt];
-//		for (int t = 0; t < nt; t++) {
-//			out[t] = new Spots();
-//			for (Spot spot : spots[t]) {
-//				dog.setPosition(1, 1, t + 1);
-//				double value = dog.getProcessor().getPixelValue(spot.x, spot.y);
-//				if (value > threshold)
-//					out[t].add(spot);
-//			}
-//		}
-//		return out;
-//	}
-//
-//	private ImagePlus dog(ImagePlus imp, double sigma) {
-//		ImagePlus g1 = imp.duplicate();
-//		ImagePlus g2 = imp.duplicate();
-//		IJ.run(g1, "Gaussian Blur...", "sigma=" + sigma + " stack");
-//		//IJ.run(g2, "Gaussian Blur...", "sigma=" + (Math.sqrt(2) * sigma) + " stack");
-//		IJ.run(g2, "Gaussian Blur...", "sigma=" + (50 * sigma) + " stack");
-//		ImagePlus dog = ImageCalculator.run(g1, g2, "Subtract create stack");
-//		dog.show();
-//		return dog;
-//	}
-	
-//	private Spots[] localMax(ImagePlus imp) {
-//		int nt = imp.getNFrames();
-//		int nx = imp.getWidth();
-//		int ny = imp.getHeight();
-//		Spots spots[] = new Spots[nt];
-//		for (int t = 0; t < nt; t++) {
-//			imp.setPosition(1, 1, t + 1);
-//			ImageProcessor ip = imp.getProcessor();
-//			spots[t] = new Spots();
-//			for (int x = 1; x < nx - 1; x++) {
-//				for (int y = 1; y < ny - 1; y++) {
-//					double v = ip.getPixelValue(x, y);
-//					double max = -1;
-//					for (int k = -20; k <= 20; k++)
-//						for (int l = -20; l <= 20; l++)
-//							max = Math.max(max, ip.getPixelValue(x + k, y + l));
-//					if (v == max)
-//						spots[t].add(new Spot(x, y, t));
-//				}
-//			}
-//		}
-//		return spots;
-//	}
+
 
 }
