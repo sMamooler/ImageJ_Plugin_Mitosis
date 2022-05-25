@@ -12,9 +12,9 @@ import ij.process.ImageProcessor;
 public class Mitosis implements PlugIn {
 
 	public void run(String arg) {
-		
-		/*lambda to be changed*/
-		double lambda = 0; 
+		ImagePlus original = IJ.getImage();
+		IJ.run(original, "Duplicate...", "title=red_ds_copy.tif duplicate");
+		IJ.selectWindow("red_ds_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
 		ArrayList<Spot> spots[] = detect(imp);
@@ -27,37 +27,26 @@ public class Mitosis implements PlugIn {
 		// calculate dmax and fmax for each frame and store them in a list all_dmax and all_fmax
 		Double all_dmax[] = new Double[nt];
 		Double all_fmax[] = new Double[nt];
+		// link the current spot with the next one using the nearest neighbor method
+		
+		/*lambda to be changed*/
+		double lambda = 0.05; 
 		ImageProcessor ip = imp.getProcessor();
 
 		for (int t = 0; t < nt - 1; t++) {
 			double dmax = 0;
 			double fmax = 0;
 			for (Spot current : spots[t]) {
-				for (Spot next : spots[t+1]) {
-					/*set dmax*/
-					if (current.distance(next) > dmax)
-						dmax = current.distance(next);
-					/*set fmax*/
-					imp.setPosition(1, 1, t);
-					double fc = ip.getPixelValue(current.x, current.y);
-					imp.setPosition(1, 1, t + 1);
-					double fn = ip.getPixelValue(next.x, next.y);
-					if (Math.abs(fc - fn) > fmax)
-						fmax = Math.abs(fc - fn);
-				}
-			}
-			all_dmax[t] = dmax;
-			all_fmax[t] = fmax;
-		}
-
-		// link the current spot with the next one using the nearest neighbor method
-		for (int t = 0; t < nt - 1; t++) {
-			for (Spot current : spots[t]) {
-				double dmax = all_dmax[t];
-				double fmax = all_fmax[t];
 				double c_init = Double.MAX_VALUE;
+				double fc = ip.getPixelValue(current.x, current.y);
 				Spot min_spot = null;
-						
+				imp.setSlice(t + 1);
+				for (Spot next : spots[t+1]) {
+					dmax = Math.max(dmax, current.distance(next));
+					double fn = ip.getPixelValue(next.x, next.y);
+					fmax = Math.max(fmax, Math.abs(fc - fn));
+				}
+				imp.setSlice(t);		
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
 					double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
@@ -101,8 +90,7 @@ public class Mitosis implements PlugIn {
 		Overlay overlay = new Overlay();
 		draw(overlay, spots);
 		System.out.println("finished drawing");
-		imp.setOverlay(overlay);
-		
+		original.setOverlay(overlay);
 	}
 
 	/*function to calculate a better cost function*/
@@ -133,12 +121,9 @@ public class Mitosis implements PlugIn {
 	private Spots[] detect(ImagePlus imp) {
 		
 		// pre-process 
-		ImagePlus imp_copy = imp.duplicate();
-		IJ.run(imp_copy, "Median...", "radius=2 stack");
-		// TODO: do we still need this duplicate considering that we copy above?
-		IJ.run(imp, "Duplicate...", "title=nucleus-copy.tif duplicate");
-		IJ.run(imp_copy, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
-		IJ.run(imp_copy,  "Gray Morphology", "radius=1 type=circle operator=open");
+		IJ.run(imp, "Median...", "radius=2 stack");
+		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
+		IJ.run(imp,  "Gray Morphology", "radius=1 type=circle operator=open");
 		
 		IJ.setBackgroundColor(0, 0, 0);
 		
@@ -184,7 +169,5 @@ public class Mitosis implements PlugIn {
 		
 		return spots;
 	}
-
-
 
 }
