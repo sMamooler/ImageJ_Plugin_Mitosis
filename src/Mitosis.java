@@ -51,7 +51,7 @@ public class Mitosis implements PlugIn {
 		//plot.setLimits(0, nt+1, 0, 400);
 		for (int t = 1; t < nt; t++) {
 			nb_division[t] = division_spots[t].size();
-			mitosis_rates[t] = nb_division[t] /  nb_nucleus[t];
+			mitosis_rates[t] = (double)nb_division[t] / nb_nucleus[t];
 			frame_axis[t] = t;
 			// print the number of nucleus and mitosis in each frame to check
 			System.out.printf("t = %d, nucleus = %d, division = %d %n", t, nb_nucleus[t], nb_division[t]);  
