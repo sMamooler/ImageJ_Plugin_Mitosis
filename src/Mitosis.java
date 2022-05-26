@@ -27,7 +27,8 @@ public class Mitosis implements PlugIn {
 		// link the current spot with the next one using the nearest neighbor method
 		
 		/*lambda to be changed*/
-		double lambda = 0; 
+		double lambda = 0;
+		double distance_link_limit = 60;
 		ImageProcessor ip = imp.getProcessor();
 
 		for (int t = 0; t < nt - 1; t++) {
@@ -46,10 +47,12 @@ public class Mitosis implements PlugIn {
 				imp.setSlice(t);		
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
-					double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
-					if ((c < c_init) && (c < 60)) {
-						min_spot = next;
-						c_init = c;
+					if (current.distance(next) < distance_link_limit) {
+						double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
+						if (c < c_init) {
+							min_spot = next;
+							c_init = c;
+						}
 					}
 				current.link(min_spot);
 			    }
