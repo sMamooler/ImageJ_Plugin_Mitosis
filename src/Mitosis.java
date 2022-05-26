@@ -37,6 +37,7 @@ public class Mitosis implements PlugIn {
 			double fmax = 0;
 			for (Spot current : spots[t]) {
 				double c_init = Double.MAX_VALUE;
+				imp.setSlice(t);
 				double fc = ip.getPixelValue(current.x, current.y);
 				Spot min_spot = null;
 				imp.setSlice(t + 1);
@@ -44,8 +45,7 @@ public class Mitosis implements PlugIn {
 					dmax = Math.max(dmax, current.distance(next));
 					double fn = ip.getPixelValue(next.x, next.y);
 					fmax = Math.max(fmax, Math.abs(fc - fn));
-				}
-				imp.setSlice(t);		
+				}		
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
 					if (current.distance(next) < distance_link_limit) {
