@@ -30,7 +30,7 @@ public class Mitosis implements PlugIn {
 		// link the current spot with the next one using the nearest neighbor method
 		
 		/*lambda to be changed*/
-		double lambda = 0.05; 
+		double lambda = 0; 
 		ImageProcessor ip = imp.getProcessor();
 
 		for (int t = 0; t < nt - 1; t++) {
@@ -50,7 +50,7 @@ public class Mitosis implements PlugIn {
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
 					double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
-					if (c < c_init) {
+					if ((c < c_init) && (c < 60)) {
 						min_spot = next;
 						c_init = c;
 					}
@@ -59,34 +59,19 @@ public class Mitosis implements PlugIn {
 		    }
 		}
 		// post processing to find the division spots and link them to have the same color
-		/*for (int t = 1; t < nt; t++) {
+		for (int t = 1; t < nt; t++) {
 			int nb_spots = spots[t].size();
 			for (int m = 0; m < nb_spots; m++) {
 				Spot spot = spots[t].get(m);
 				//check if a spot has a precedent link, if not, it is a division spot
 				if (spot.previous == null) {
-					double dmax = all_dmax[t];
-					//find the closest precedent spot for the division spot
-					Spot closest_spot = null;
-					for (int n = 0; n < nb_spots; n++) {
-						if (n != m) {
-							Spot other = spots[t].get(n);
-							double dist = spot.distance(other);
-							if ((dist < dmax) && (other.previous != null)) {
-								closest_spot = other;
-								dmax = dist;
-							}
-						}
-					}
+					// store this spot in a new ArrayList
 					
-					if (closest_spot != null) {
-						spot.previous = closest_spot.previous;
-						spot.set_color(closest_spot.get_color());
-					}
 				}
 			}
+			// count the number of spots in this list and append it to a list nb_mitosis
 		}
-		*/
+		
 		Overlay overlay = new Overlay();
 		draw(overlay, spots);
 		System.out.println("finished drawing");
@@ -97,16 +82,17 @@ public class Mitosis implements PlugIn {
 	private double cost_function(ImagePlus imp, int t, Spot current, Spot next, double dmax, double fmax, double lambda) {
 		ImageProcessor ip = imp.getProcessor();
 		/*distance term*/
-		double c1 = current.distance(next)/dmax;
+		//double c1 = current.distance(next)/dmax;
+		double c = current.distance(next);
 		/*intensity term*/
-		imp.setPosition(1, 1, t);
+		/*imp.setPosition(1, 1, t);
 		double fc = ip.getPixelValue(current.x, current.y);
 		imp.setPosition(1, 1, t + 1);
 		double fn = ip.getPixelValue(next.x, next.y);
 		double c2 = Math.abs(fc - fn)/fmax;
 		/*better cost function weighted by lambda*/
-		double c = (1 - lambda) * c1 + lambda * c2;
-		
+		/*double c = (1 - lambda) * c1 + lambda * c2;
+		*/
 		return c;
 	}
 	
@@ -124,26 +110,26 @@ public class Mitosis implements PlugIn {
 		IJ.run(imp, "Median...", "radius=2 stack");
 		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
 		IJ.run(imp,  "Gray Morphology", "radius=1 type=circle operator=open");
-		
 		IJ.setBackgroundColor(0, 0, 0);
 		
 		IJ.run("Convert to Mask", "method=Default background=Default calculate");
 		
 	
-		int nt = imp_copy.getNSlices();
+		int nt = imp.getNSlices();
 		Spots spots[] = new Spots[nt];
 		
 		
 
 		for(int t=0; t<nt; t++) {
 			System.out.println("frame"+t);
-			imp_copy.setSlice(t+1);
+			imp.setSlice(t+1);
 			IJ.run("Set Measurements...", "centroid redirect=None decimal=3");
-			IJ.run(imp_copy, "Analyze Particles...", "size=36-Infinity add");
+			IJ.run(imp, "Analyze Particles...", "size=36-Infinity add");
+
 			
 			RoiManager rm =  RoiManager.getInstance();
 			rm.deselect();
-			ResultsTable measures = rm.multiMeasure(imp_copy);
+			ResultsTable measures = rm.multiMeasure(imp);
 			IJ.run("From ROI Manager", "");
 			
 			int nb_particles = rm.getCount();
@@ -162,10 +148,13 @@ public class Mitosis implements PlugIn {
 			}
 		
 			// clean ROI manager for the next iteration
-			IJ.run(imp_copy, "Select All", "");
-			rm.runCommand(imp_copy,"Delete");
+			IJ.run(imp, "Select All", "");
+			rm.runCommand(imp,"Delete");
 			
 		}
+		
+		RoiManager rm = RoiManager.getRoiManager();
+		rm.close();
 		
 		return spots;
 	}
