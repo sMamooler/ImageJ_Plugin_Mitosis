@@ -48,7 +48,7 @@ public class Mitosis implements PlugIn {
 				/*find the spot in the next frame with the minimum cost*/
 				for (Spot next : spots[t + 1]) {
 					if (current.distance(next) < distance_link_limit) {
-						double c = cost_function(imp, t, current, next, dmax, fmax, lambda);
+						double c = cost_function(imp, current, next, dmax, fmax, lambda);
 						if (c < c_init) {
 							min_spot = next;
 							c_init = c;
@@ -74,7 +74,7 @@ public class Mitosis implements PlugIn {
 	}
 
 	/*function to calculate a better cost function*/
-	private double cost_function(ImagePlus imp, int t, Spot current, Spot next, double dmax, double fmax, double lambda) {
+	private double cost_function(ImagePlus imp, Spot current, Spot next, double dmax, double fmax, double lambda) {
 		ImageProcessor ip = imp.getProcessor();
 		/*distance term*/
 		double c1 = current.distance(next)/dmax;
