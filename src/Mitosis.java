@@ -17,7 +17,7 @@ public class Mitosis implements PlugIn {
 		IJ.selectWindow("red_ds_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
-		ArrayList<Spot> spots[] = detect(imp);
+		ArrayList<Spot> spots[] = detect(imp, 4, 400, 16, 255);
 		
 		int nb_nucleus[] = new int[nt];
 		for(int t=0; t<nt; t++) {
@@ -101,16 +101,19 @@ public class Mitosis implements PlugIn {
 	}
 
 	
-	private Spots[] detect(ImagePlus imp) {
+	private Spots[] detect(ImagePlus imp, int smooth_kernel_size, int particle_size, int threshold_min, int threshold_max) {
 		
-		// pre-process 
-		IJ.run(imp, "Median...", "radius=2 stack");
-		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=15 parameter_1=0 parameter_2=0 white stack");
-		IJ.run(imp,  "Gray Morphology", "radius=1 type=circle operator=open");
-		IJ.setBackgroundColor(0, 0, 0);
-		
-		IJ.run("Convert to Mask", "method=Default background=Default calculate");
-		
+		// smoothing 
+		IJ.run(imp, "Median...", "radius="+ smooth_kernel_size +" stack");
+		// thresholding
+		IJ.setAutoThreshold(imp, "Default dark");
+		IJ.setRawThreshold(imp, threshold_min, threshold_max, null);
+		IJ.run(imp, "Convert to Mask", "method=Default background=Dark");
+		imp = imp.duplicate();
+		// filling holes before watersheding
+		IJ.run(imp, "Fill Holes", "stack");
+		// separate blobs of nucleus
+		IJ.run(imp, "Watershed", "stack");
 	
 		int nt = imp.getNSlices();
 		Spots spots[] = new Spots[nt];
