@@ -59,8 +59,8 @@ public class Mitosis implements PlugIn {
 		    }
 		}
 		// post processing to find the division spots and link them to have the same color	
-		double threshold = 0;
-		ArrayList<Spot>[] division_spots = filter(spots, original, threshold);
+		double intensity_threshold = 150;
+		ArrayList<Spot>[] division_spots = filter(spots, original, intensity_threshold);
 		int nb_division[] = new int[nt];
 		for (int t = 1; t < nt; t++) {
 			nb_division[t] = division_spots[t].size();
@@ -164,8 +164,12 @@ public class Mitosis implements PlugIn {
 			imp.setSlice(t);
 			out[t] = new Spots();
 			for (Spot spot : spots[t]) {
-				double intensity = ip.getPixelValue(spot.x, spot.y);
-				if ((spot.previous == null ) && (intensity > threshold)) {
+				double mean = 0;
+				for (Point p : spot.roi) {
+					mean = mean + ip.getPixelValue(p.x, p.y);
+				}
+				mean = mean / spot.roi.size();
+				if ((spot.previous == null) && (mean > threshold)) {
 					out[t].add(spot);
 				}
 			}
