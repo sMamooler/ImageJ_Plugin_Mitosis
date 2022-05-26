@@ -31,8 +31,15 @@ public class Spot {
 	public void draw(Overlay overlay) {
 
 		this.roi.setPosition(this.t+1); // display roi in one frame
-		this.roi.setStrokeColor(new Color(255, 0, 0, 120));
-		this.roi.setStrokeWidth(1);
+		if ((this.previous == null) && (this.t != 0)) {
+			this.roi.setStrokeColor(new Color(0, 255, 0, 120));
+			this.roi.setStrokeWidth(5);
+		}
+		else {
+			this.roi.setStrokeColor(new Color(255, 0, 0, 120));
+			this.roi.setStrokeWidth(1);
+		}
+		
 		overlay.add(this.roi);
 	
 		if (next != null) {
