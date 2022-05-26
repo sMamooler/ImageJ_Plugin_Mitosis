@@ -124,7 +124,8 @@ public class Mitosis implements PlugIn {
 			System.out.println("frame"+t);
 			imp.setSlice(t+1);
 			IJ.run("Set Measurements...", "centroid redirect=None decimal=3");
-			IJ.run(imp, "Analyze Particles...", "size=36-Infinity add");
+			// set minimum threshold for particle size to filter out small noise blobs
+			IJ.run(imp, "Analyze Particles...", "size=" + particle_size +" -Infinity add");
 
 			
 			RoiManager rm =  RoiManager.getInstance();
