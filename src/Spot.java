@@ -47,12 +47,12 @@ public class Spot {
 		//overlay.add(text);
 	}
 	/*extended the link to a double link: current <-> next*/
-	public void link(Spot a) {
-		if (a == null)
-			return;
-		this.next = a;
-		a.previous = this;
-		a.color = this.color;
+	public void link(Spot next) {
+		if (next != null) {
+			this.next = next;
+			next.previous = this;
+			next.set_color(this.color);
+		}
 	}
 	/*added two functions to get color and set color*/
 	public Color get_color() {
