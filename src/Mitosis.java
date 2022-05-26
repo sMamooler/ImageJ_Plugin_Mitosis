@@ -79,9 +79,9 @@ public class Mitosis implements PlugIn {
 		/*distance term*/
 		double c1 = current.distance(next)/dmax;
 		/*intensity term*/
-		imp.setPosition(1, 1, t);
+		imp.setSlice(current.t);
 		double fc = ip.getPixelValue(current.x, current.y);
-		imp.setPosition(1, 1, t + 1);
+		imp.setSlice(next.t);
 		double fn = ip.getPixelValue(next.x, next.y);
 		double c2 = Math.abs(fc - fn)/fmax;
 		/*better cost function weighted by lambda*/
