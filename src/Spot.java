@@ -28,10 +28,10 @@ public class Spot {
 		return Math.sqrt(dx * dx + dy * dy);
 	}
 
-	public void draw(Overlay overlay) {
+	public void draw(Overlay overlay, boolean mitosis) {
 
 		this.roi.setPosition(this.t+1); // display roi in one frame
-		if ((this.previous == null) && (this.t != 0)) {
+		if (mitosis == true) {
 			this.roi.setStrokeColor(new Color(0, 255, 0, 120));
 			this.roi.setStrokeWidth(5);
 		}

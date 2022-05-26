@@ -68,7 +68,7 @@ public class Mitosis implements PlugIn {
 		}
 		
 		Overlay overlay = new Overlay();
-		draw(overlay, spots);
+		draw(overlay, spots, division_spots);
 		System.out.println("finished drawing");
 		original.setOverlay(overlay);
 	}
@@ -89,11 +89,14 @@ public class Mitosis implements PlugIn {
 		return c;
 	}
 	
-	private void draw(Overlay overlay, ArrayList<Spot> spots[]) {
+	private void draw(Overlay overlay, ArrayList<Spot> spots[], ArrayList<Spot> division_spots[]) {
 		int nt = spots.length;
-		for (int t = 0; t < nt; t++)
-			for (Spot spot : spots[t])
-				spot.draw(overlay);
+		for (int t = 0; t < nt; t++) {
+			for (Spot spot : spots[t]) {
+				boolean mitosis = ((division_spots[t] != null) && (division_spots[t].contains(spot)));
+				spot.draw(overlay, mitosis);
+			}
+		}
 	}
 
 	
