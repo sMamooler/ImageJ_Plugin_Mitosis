@@ -30,36 +30,8 @@ public class Mitosis implements PlugIn {
 		/*lambda to be changed*/
 		double lambda = 0;
 		double distance_link_limit = 60;
-		ImageProcessor ip = imp.getProcessor();
-
-		for (int t = 0; t < nt - 1; t++) {
-			double dmax = 0;
-			double fmax = 0;
-			for (Spot current : spots[t]) {
-				double c_init = Double.MAX_VALUE;
-				imp.setSlice(t);
-				double fc = ip.getPixelValue(current.x, current.y);
-				Spot min_spot = null;
-				imp.setSlice(t + 1);
-				for (Spot next : spots[t+1]) {
-					dmax = Math.max(dmax, current.distance(next));
-					double fn = ip.getPixelValue(next.x, next.y);
-					fmax = Math.max(fmax, Math.abs(fc - fn));
-				}		
-				/*find the spot in the next frame with the minimum cost*/
-				for (Spot next : spots[t + 1]) {
-					if (current.distance(next) < distance_link_limit) {
-						double c = cost_function(imp, current, next, dmax, fmax, lambda);
-						if (c < c_init) {
-							min_spot = next;
-							c_init = c;
-						}
-					}
-				current.link(min_spot);
-			    }
-		    }
-		}
-		// post processing to find the division spots and link them to have the same color	
+		
+		link(imp, spots, lambda, distance_link_limit);
 		double intensity_threshold = 150;
 		ArrayList<Spot>[] division_spots = filter(spots, original, intensity_threshold);
 		int nb_division[] = new int[nt];
@@ -149,6 +121,40 @@ public class Mitosis implements PlugIn {
 		return spots;
 	}
 	
+	// function to track nucleus: link the current spot with the next one using the nearest neighbor method
+	private void link (ImagePlus imp, ArrayList<Spot> spots[], double lambda, double distance_link_limit) {
+		ImageProcessor ip = imp.getProcessor();
+		int nt = imp.getNSlices();
+		for (int t = 0; t < nt - 1; t++) {
+			double dmax = 0;
+			double fmax = 0;
+			for (Spot current : spots[t]) {
+				double c_init = Double.MAX_VALUE;
+				imp.setSlice(t);
+				double fc = ip.getPixelValue(current.x, current.y);
+				Spot min_spot = null;
+				imp.setSlice(t + 1);
+				for (Spot next : spots[t+1]) {
+					dmax = Math.max(dmax, current.distance(next));
+					double fn = ip.getPixelValue(next.x, next.y);
+					fmax = Math.max(fmax, Math.abs(fc - fn));
+				}		
+				/*find the spot in the next frame with the minimum cost*/
+				for (Spot next : spots[t + 1]) {
+					// check the maximum linking distance criterion before computing the cost function
+					// to confine the search for the min_spot in the neighborhood of the current spot
+					if (current.distance(next) < distance_link_limit) {
+						double c = cost_function(imp, current, next, dmax, fmax, lambda);
+						if (c < c_init) {
+							min_spot = next;
+							c_init = c;
+						}
+					}
+				current.link(min_spot);
+			    }
+		    }
+		}
+	}
 	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double threshold) {
 		int nt = spots.length;
 		ImageProcessor ip = imp.getProcessor();
