@@ -160,7 +160,7 @@ public class Mitosis implements PlugIn {
 		int nt = spots.length;
 		ImageProcessor ip = imp.getProcessor();
 		ArrayList<Spot> out[] = new Spots[nt];
-		for (int t = 0; t < nt; t++) {
+		for (int t = 1; t < nt; t++) {
 			imp.setSlice(t);
 			out[t] = new Spots();
 			for (Spot spot : spots[t]) {
