@@ -18,35 +18,47 @@ public class Mitosis implements PlugIn {
 		IJ.selectWindow("red_ds_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
-		ArrayList<Spot> spots[] = detect(imp, 4, 400, 16, 255);
 		
+		// step 1: detect nucleus
+		ArrayList<Spot> spots[] = detect(imp, 4, 400, 16, 255);
+		// count the number of nucleus in each frame and store it in an array
 		int nb_nucleus[] = new int[nt];
 		for(int t=0; t<nt; t++) {
 			nb_nucleus[t] = spots[t].size();
 		}
 		
-		// link the current spot with the next one using the nearest neighbor method
-		
-		/*lambda to be changed*/
+		// step 2: tracking nucleus		
+		// lambda = 0 : only consider distance, lambda = 1 : only consider intensity
 		double lambda = 0;
+		// set a maximum linking distance to avoid false linking (inspired by trackmate)
 		double distance_link_limit = 60;
 		
 		link(imp, spots, lambda, distance_link_limit);
+		
+		// step 3: detect mitosis		
+		// criteria 1) a spot without a previous link means mitosis in the ideal case (no merging blobs, no cells running out of the frame)
+		// criteria 2) when mitosis happens, the nucleus is very bright, so we set an intensity threshold to screen out false positive of mitosis 
 		double intensity_threshold = 150;
+		// function filter detects mitosis and store these spots in a list division_spots
 		ArrayList<Spot>[] division_spots = filter(spots, original, intensity_threshold);
+		// count the number of mitosis in each frame and store it in an array
 		int nb_division[] = new int[nt];
 		for (int t = 1; t < nt; t++) {
 			nb_division[t] = division_spots[t].size();
+			// print the number of nucleus and mitosis in each frame to check
 			System.out.printf("t = %d, nucleus = %d, division = %d %n", t, nb_nucleus[t], nb_division[t]);  
 		}
-		
+				
+		// step 4: draw the detected nucleus (red thin boundary) and the mitosis (green thick boundary)
 		Overlay overlay = new Overlay();
 		draw(overlay, spots, division_spots);
 		System.out.println("finished drawing");
 		original.setOverlay(overlay);
 	}
-
-	/*function to calculate a better cost function*/
+	
+	//-------------functions used in main---------------
+	
+	// function to calculate the cost function for tracking
 	private double cost_function(ImagePlus imp, Spot current, Spot next, double dmax, double fmax, double lambda) {
 		ImageProcessor ip = imp.getProcessor();
 		/*distance term*/
@@ -62,51 +74,50 @@ public class Mitosis implements PlugIn {
 		return c;
 	}
 	
+	// function to detect the nucleus
 	private Spots[] detect(ImagePlus imp, int smooth_kernel_size, int particle_size, int threshold_min, int threshold_max) {
 		
-		// smoothing 
+		// smoothing using the median filter with a certain kernel size 
 		IJ.run(imp, "Median...", "radius="+ smooth_kernel_size +" stack");
-		// thresholding
+		// thresholding by checking the histogram and manually setting the min and max threshold such that
+		// the nucleus is well covered
 		IJ.setAutoThreshold(imp, "Default dark");
 		IJ.setRawThreshold(imp, threshold_min, threshold_max, null);
 		IJ.run(imp, "Convert to Mask", "method=Default background=Dark");
 		imp = imp.duplicate();
-		// filling holes before watersheding
+		// filling holes in nucleus for watershedding to work better
 		IJ.run(imp, "Fill Holes", "stack");
-		// separate blobs of nucleus
+		// watershedding to separate blobs of nucleus to improve the quality of tracking 
 		IJ.run(imp, "Watershed", "stack");
 	
 		int nt = imp.getNSlices();
 		Spots spots[] = new Spots[nt];
 		
-		
-
+		// for each frame: use analyze particles to detect nucleus
 		for(int t=0; t<nt; t++) {
 			System.out.println("frame"+t);
 			imp.setSlice(t+1);
 			IJ.run("Set Measurements...", "centroid redirect=None decimal=3");
-			// set minimum threshold for particle size to filter out small noise blobs
+			// set a minimum threshold for particle size (pixel^2) to filter out small noise blobs
+			// add detected particles to thr ROI manager
 			IJ.run(imp, "Analyze Particles...", "size=" + particle_size +" -Infinity add");
 
-			
 			RoiManager rm =  RoiManager.getInstance();
 			rm.deselect();
 			ResultsTable measures = rm.multiMeasure(imp);
+			// overlay the original image with the drawing of ROIs
 			IJ.run("From ROI Manager", "");
 			
+			// find the centroids of ROIs in each frame as the detected spots and store them in an array
 			int nb_particles = rm.getCount();
 			spots[t] = new Spots();
 			
-			for(int p=0; p<nb_particles; p++) {
-				
+			for(int p=0; p<nb_particles; p++) {				
 				Roi roi = rm.getRoi(p);
-				
 				int x = (int) measures.getColumnAsDoubles(2*p)[t];
 				int y = (int) measures.getColumnAsDoubles(2*p+1)[t];
 				Spot spot = new Spot(x, y, t, roi);
-				spots[t].add(spot);
-			
-				
+				spots[t].add(spot);	
 			}
 		
 			// clean ROI manager for the next iteration
@@ -155,19 +166,27 @@ public class Mitosis implements PlugIn {
 		    }
 		}
 	}
+		
+	// function to detect mitosis
 	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double threshold) {
 		int nt = spots.length;
 		ImageProcessor ip = imp.getProcessor();
+		// create an array list to store all the mitosis spots in each frame
 		ArrayList<Spot> out[] = new Spots[nt];
 		for (int t = 1; t < nt; t++) {
 			imp.setSlice(t);
 			out[t] = new Spots();
+			// compute the mean intensity of the ROI of the this spot
 			for (Spot spot : spots[t]) {
 				double mean = 0;
 				for (Point p : spot.roi) {
 					mean = mean + ip.getPixelValue(p.x, p.y);
 				}
 				mean = mean / spot.roi.size();
+				// we use 2 criteria to detect mitosis:
+				// 1. if this spot does not have a previous link, this means mitosis happened
+				// 2. thresholding the mean intensity to screen out false positives because 
+				// when mitosis happens, the intensity of the cell is higher than others
 				if ((spot.previous == null) && (mean > threshold)) {
 					out[t].add(spot);
 				}
