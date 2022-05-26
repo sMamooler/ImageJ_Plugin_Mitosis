@@ -55,18 +55,13 @@ public class Mitosis implements PlugIn {
 			    }
 		    }
 		}
-		// post processing to find the division spots and link them to have the same color
+		// post processing to find the division spots and link them to have the same color	
+		double threshold = 0;
+		ArrayList<Spot>[] division_spots = filter(spots, original, threshold);
+		int nb_division[] = new int[nt];
 		for (int t = 1; t < nt; t++) {
-			int nb_spots = spots[t].size();
-			for (int m = 0; m < nb_spots; m++) {
-				Spot spot = spots[t].get(m);
-				//check if a spot has a precedent link, if not, it is a division spot
-				if (spot.previous == null) {
-					// store this spot in a new ArrayList
-					
-				}
-			}
-			// count the number of spots in this list and append it to a list nb_mitosis
+			nb_division[t] = division_spots[t].size();
+			System.out.printf("t = %d, nucleus = %d, division = %d %n", t, nb_nucleus[t], nb_division[t]);  
 		}
 		
 		Overlay overlay = new Overlay();
@@ -158,6 +153,23 @@ public class Mitosis implements PlugIn {
 		rm.close();
 		
 		return spots;
+	}
+	
+	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double threshold) {
+		int nt = spots.length;
+		ImageProcessor ip = imp.getProcessor();
+		ArrayList<Spot> out[] = new Spots[nt];
+		for (int t = 0; t < nt; t++) {
+			imp.setSlice(t);
+			out[t] = new Spots();
+			for (Spot spot : spots[t]) {
+				double intensity = ip.getPixelValue(spot.x, spot.y);
+				if ((spot.previous == null ) && (intensity > threshold)) {
+					out[t].add(spot);
+				}
+			}
+		}
+		return out;
 	}
 
 }
