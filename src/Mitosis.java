@@ -24,9 +24,6 @@ public class Mitosis implements PlugIn {
 			nb_nucleus[t] = spots[t].size();
 		}
 		
-		// calculate dmax and fmax for each frame and store them in a list all_dmax and all_fmax
-		Double all_dmax[] = new Double[nt];
-		Double all_fmax[] = new Double[nt];
 		// link the current spot with the next one using the nearest neighbor method
 		
 		/*lambda to be changed*/
