@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Overlay;
+import ij.gui.Plot;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
 import ij.plugin.PlugIn;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
+
 
 public class Mitosis implements PlugIn {
 
@@ -43,12 +45,19 @@ public class Mitosis implements PlugIn {
 		ArrayList<Spot>[] division_spots = filter(spots, original, intensity_threshold);
 		// count the number of mitosis in each frame and store it in an array
 		int nb_division[] = new int[nt];
+		Plot plot = new Plot("Mean Intensity", "Time", "Intensity");
+		double[] frame_axis = new double[nt];
+		double mitosis_rates[nt] = new double[nt];
+		//plot.setLimits(0, nt+1, 0, 400);
 		for (int t = 1; t < nt; t++) {
 			nb_division[t] = division_spots[t].size();
+			mitosis_rates[t] = nb_division[t] /  nb_nucleus[t];
+			frame_axis[t] = t;
 			// print the number of nucleus and mitosis in each frame to check
 			System.out.printf("t = %d, nucleus = %d, division = %d %n", t, nb_nucleus[t], nb_division[t]);  
 		}
-				
+		plot.addPoints(frame_axis, mitosis_rates, Plot.CIRCLE);
+		plot.show();
 		// step 4: draw the detected nucleus (red thin boundary) and the mitosis (green thick boundary)
 		Overlay overlay = new Overlay();
 		draw(overlay, spots, division_spots);
