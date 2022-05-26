@@ -90,17 +90,6 @@ public class Mitosis implements PlugIn {
 		return c;
 	}
 	
-	private void draw(Overlay overlay, ArrayList<Spot> spots[], ArrayList<Spot> division_spots[]) {
-		int nt = spots.length;
-		for (int t = 0; t < nt; t++) {
-			for (Spot spot : spots[t]) {
-				boolean mitosis = ((division_spots[t] != null) && (division_spots[t].contains(spot)));
-				spot.draw(overlay, mitosis);
-			}
-		}
-	}
-
-	
 	private Spots[] detect(ImagePlus imp, int smooth_kernel_size, int particle_size, int threshold_min, int threshold_max) {
 		
 		// smoothing 
@@ -180,5 +169,16 @@ public class Mitosis implements PlugIn {
 		}
 		return out;
 	}
+	
+	// function to draw the overlay
+	private void draw(Overlay overlay, ArrayList<Spot> spots[], ArrayList<Spot> division_spots[]) {
+			int nt = spots.length;
+			for (int t = 0; t < nt; t++) {
+				for (Spot spot : spots[t]) {
+					boolean mitosis = ((division_spots[t] != null) && (division_spots[t].contains(spot)));
+					spot.draw(overlay, mitosis);
+				}
+			}
+		}
 
 }
