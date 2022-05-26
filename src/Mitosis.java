@@ -77,17 +77,15 @@ public class Mitosis implements PlugIn {
 	private double cost_function(ImagePlus imp, int t, Spot current, Spot next, double dmax, double fmax, double lambda) {
 		ImageProcessor ip = imp.getProcessor();
 		/*distance term*/
-		//double c1 = current.distance(next)/dmax;
-		double c = current.distance(next);
+		double c1 = current.distance(next)/dmax;
 		/*intensity term*/
-		/*imp.setPosition(1, 1, t);
+		imp.setPosition(1, 1, t);
 		double fc = ip.getPixelValue(current.x, current.y);
 		imp.setPosition(1, 1, t + 1);
 		double fn = ip.getPixelValue(next.x, next.y);
 		double c2 = Math.abs(fc - fn)/fmax;
 		/*better cost function weighted by lambda*/
-		/*double c = (1 - lambda) * c1 + lambda * c2;
-		*/
+		double c = (1 - lambda) * c1 + lambda * c2;
 		return c;
 	}
 	
