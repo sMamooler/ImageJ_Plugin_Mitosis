@@ -8,18 +8,21 @@ public class Spot {
 	public int x;
 	public int y;
 	public Roi roi;
-	public double mean_intensity;
+	public double red_mean_intensity;
+	public double green_mean_intensity;
+
 	public int t;
 	private Spot next = null;
 	public Spot previous = null;
 	public Color color;
 	
 	// define the attributes of a spot
-	public Spot(int x, int y, int t, Roi roi, double mean_intensity) {
+	public Spot(int x, int y, int t, Roi roi, double red_mean_intensity, double green_mean_intensity) {
 		this.x = x;
 		this.y = y;
 		this.roi = roi;
-		this.mean_intensity = mean_intensity;
+		this.red_mean_intensity = red_mean_intensity;
+		this.green_mean_intensity = green_mean_intensity;
 		this.t = t;
 		color = Color.getHSBColor((float)Math.random(), 1f, 1f);
 		this.color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 120);
@@ -37,13 +40,13 @@ public class Spot {
 		// if this spot is mitosis, draw with a green thick stroke
 		this.roi.setPosition(this.t+1); // display roi in one frame
 		if (mitosis == true) {
-			this.roi.setStrokeColor(new Color(0, 255, 0, 120));
+			this.roi.setStrokeColor(new Color(255, 0, 0, 200));
 			this.roi.setStrokeWidth(5);
 		}
 		// if this spot is not mitosis, draw with a red think stroke
 		else {
-			this.roi.setStrokeColor(new Color(255, 0, 0, 120));
-			this.roi.setStrokeWidth(1);
+			this.roi.setStrokeColor(new Color(255, 255, 255, 120));
+			this.roi.setStrokeWidth(2);
 		}
 		
 		overlay.add(this.roi);
