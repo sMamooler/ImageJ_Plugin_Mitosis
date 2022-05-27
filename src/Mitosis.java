@@ -37,16 +37,17 @@ public class Mitosis implements PlugIn {
 		// lambda = 0 : only consider distance, lambda = 1 : only consider intensity
 		double lambda = 0;
 		// set a maximum linking distance to avoid false linking (inspired by trackmate)
-		double distance_link_limit = Double.MAX_VALUE;
+		double distance_link_limit = 60;
 		
 		link(imp, spots, lambda, distance_link_limit);
 		
 		// step 3: detect mitosis		
 		// criteria 1) a spot without a previous link means mitosis in the ideal case (no merging blobs, no cells running out of the frame)
 		// criteria 2) when mitosis happens, the nucleus is very bright, so we set an intensity threshold to screen out false positive of mitosis 
-		double intensity_threshold = 50;
+		double intensity_threshold = 70;
+		double area_threshold = 300;
 		// function filter detects mitosis and store these spots in a list division_spots
-		ArrayList<Spot>[] division_spots = filter(spots, red, intensity_threshold);
+		ArrayList<Spot>[] division_spots = filter(spots, red, intensity_threshold, area_threshold);
 		// count the number of mitosis in each frame and store it in an array
 		int nb_division[] = new int[nt];
 		
@@ -192,7 +193,7 @@ public class Mitosis implements PlugIn {
 	}
 		
 	// function to detect mitosis
-	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double threshold) {
+	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double intensity_threshold, double area_threshold) {
 		int nt = spots.length;
 		ImageProcessor ip = imp.getProcessor();
 		// create an array list to store all the mitosis spots in each frame
@@ -213,9 +214,20 @@ public class Mitosis implements PlugIn {
 				// 1. if this spot does not have a previous link, this means mitosis happened
 				// 2. thresholding the mean intensity to screen out false positives because 
 				// when mitosis happens, the intensity of the cell is higher than others
-				if (spot.previous==null || (red_mean > 1.5*spot.previous.red_mean_intensity && spot.area < spot.previous.area/2)) {
-					out[t].add(spot);
+				
+				if (spot.previous==null) {
+					if (red_mean > intensity_threshold && spot.area < area_threshold) {
+						out[t].add(spot);
+						System.out.println("no prev");
+					}	
+				} else {
+					if (red_mean > 1.5*spot.previous.red_mean_intensity && spot.area < spot.previous.area/2) {
+						out[t].add(spot);
+						System.out.println("getting smaller and brighter");
+					}
 				}
+					
+				
 			}
 		}
 		return out;
