@@ -14,16 +14,16 @@ import ij.process.ImageProcessor;
 public class Mitosis implements PlugIn {
 
 	public void run(String arg) {
-		IJ.selectWindow("red.tif");
+		IJ.selectWindow("red");
 		ImagePlus red = IJ.getImage();
 		IJ.run(red, "Duplicate...", "title=red_copy.tif duplicate");
 		IJ.selectWindow("red_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
 		
-		IJ.selectWindow("green.tif");
+		IJ.selectWindow("green");
 		ImagePlus green = IJ.getImage();
-		System.out.println(green);
+	
 		
 		// step 1: detect nucleus
 		ArrayList<Spot> spots[] = detect(red, green, imp, 8, 200, 16, 255);
@@ -37,7 +37,7 @@ public class Mitosis implements PlugIn {
 		// lambda = 0 : only consider distance, lambda = 1 : only consider intensity
 		double lambda = 0;
 		// set a maximum linking distance to avoid false linking (inspired by trackmate)
-		double distance_link_limit = 60;
+		double distance_link_limit = Double.MAX_VALUE;
 		
 		link(imp, spots, lambda, distance_link_limit);
 		
@@ -67,7 +67,7 @@ public class Mitosis implements PlugIn {
 		Overlay overlay = new Overlay();
 		draw(overlay, spots, division_spots);
 		System.out.println("finished drawing");
-		IJ.run(red, "Merge Channels...", "c1=red.tif c2=green.tif keep");
+		IJ.run(red, "Merge Channels...", "c1=red c2=green keep");
 		IJ.selectWindow("RGB");
 		ImagePlus rgb = IJ.getImage();
 		rgb.setOverlay(overlay);
@@ -115,7 +115,7 @@ public class Mitosis implements PlugIn {
 		for(int t=0; t<nt; t++) {
 			System.out.println("frame"+t);
 			imp.setSlice(t+1);
-			IJ.run("Set Measurements...", "centroid mean redirect=None decimal=3");
+			IJ.run("Set Measurements...", "centroid mean area redirect=None decimal=3");
 			// set a minimum threshold for particle size (pixel^2) to filter out small noise blobs
 			// add detected particles to thr ROI manager
 			IJ.run(imp, "Analyze Particles...", "size=" + particle_size +" -Infinity add");
@@ -134,11 +134,12 @@ public class Mitosis implements PlugIn {
 			
 			for(int p=0; p<nb_particles; p++) {				
 				Roi roi = rm.getRoi(p);
-				double red_mean_intensity = measures_orig_red.getColumnAsDoubles(3*p)[t];
-				double green_mean_intensity = measures_orig_green.getColumnAsDoubles(3*p)[t];
-				int x = (int) measures.getColumnAsDoubles(3*p+1)[t];
-				int y = (int) measures.getColumnAsDoubles(3*p+2)[t];
-				Spot spot = new Spot(x, y, t, roi, red_mean_intensity, green_mean_intensity);
+				double area = measures.getColumnAsDoubles(4*p)[t];
+				double red_mean_intensity = measures_orig_red.getColumnAsDoubles(4*p+1)[t];
+				double green_mean_intensity = measures_orig_green.getColumnAsDoubles(4*p+1)[t];
+				int x = (int) measures.getColumnAsDoubles(4*p+2)[t];
+				int y = (int) measures.getColumnAsDoubles(4*p+3)[t];
+				Spot spot = new Spot(x, y, t, roi, red_mean_intensity, green_mean_intensity, area);
 				spots[t].add(spot);	
 			}
 		
@@ -176,6 +177,7 @@ public class Mitosis implements PlugIn {
 				for (Spot next : spots[t + 1]) {
 					// check the maximum linking distance criterion before computing the cost function
 					// to confine the search for the min_spot in the neighborhood of the current spot
+					
 					if (current.distance(next) < distance_link_limit) {
 						double c = cost_function(imp, current, next, dmax, fmax, lambda);
 						if (c < c_init) {
@@ -183,7 +185,7 @@ public class Mitosis implements PlugIn {
 							c_init = c;
 						}
 					}
-				current.link(min_spot);
+					current.link(min_spot);
 			    }
 		    }
 		}
@@ -202,8 +204,7 @@ public class Mitosis implements PlugIn {
 			for (Spot spot : spots[t]) {
 				double red_mean = spot.red_mean_intensity;
 				double green_mean = spot.green_mean_intensity;
-				System.out.println(red_mean);
-				System.out.println(green_mean);
+				
 //				for (Point p : spot.roi) {
 //					mean = mean + ip.getPixelValue(p.x, p.y);
 //				}
@@ -212,7 +213,7 @@ public class Mitosis implements PlugIn {
 				// 1. if this spot does not have a previous link, this means mitosis happened
 				// 2. thresholding the mean intensity to screen out false positives because 
 				// when mitosis happens, the intensity of the cell is higher than others
-				if ((spot.previous == null) && (red_mean > threshold)) {
+				if (spot.previous==null || (red_mean > 1.5*spot.previous.red_mean_intensity && spot.area < spot.previous.area/2)) {
 					out[t].add(spot);
 				}
 			}
