@@ -8,16 +8,18 @@ public class Spot {
 	public int x;
 	public int y;
 	public Roi roi;
+	public double mean_intensity;
 	public int t;
 	private Spot next = null;
 	public Spot previous = null;
 	public Color color;
 	
 	// define the attributes of a spot
-	public Spot(int x, int y, int t, Roi roi) {
+	public Spot(int x, int y, int t, Roi roi, double mean_intensity) {
 		this.x = x;
 		this.y = y;
 		this.roi = roi;
+		this.mean_intensity = mean_intensity;
 		this.t = t;
 		color = Color.getHSBColor((float)Math.random(), 1f, 1f);
 		this.color = new Color(color.getRed(), color.getGreen(), color.getBlue(), 120);
