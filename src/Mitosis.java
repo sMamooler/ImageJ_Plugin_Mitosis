@@ -26,7 +26,7 @@ public class Mitosis implements PlugIn {
 		System.out.println(green);
 		
 		// step 1: detect nucleus
-		ArrayList<Spot> spots[] = detect(red, green, imp, 4, 400, 16, 255);
+		ArrayList<Spot> spots[] = detect(red, green, imp, 8, 200, 16, 255);
 		// count the number of nucleus in each frame and store it in an array
 		int nb_nucleus[] = new int[nt];
 		for(int t=0; t<nt; t++) {
@@ -44,7 +44,7 @@ public class Mitosis implements PlugIn {
 		// step 3: detect mitosis		
 		// criteria 1) a spot without a previous link means mitosis in the ideal case (no merging blobs, no cells running out of the frame)
 		// criteria 2) when mitosis happens, the nucleus is very bright, so we set an intensity threshold to screen out false positive of mitosis 
-		double intensity_threshold = 70;
+		double intensity_threshold = 50;
 		// function filter detects mitosis and store these spots in a list division_spots
 		ArrayList<Spot>[] division_spots = filter(spots, red, intensity_threshold);
 		// count the number of mitosis in each frame and store it in an array
@@ -98,12 +98,13 @@ public class Mitosis implements PlugIn {
 		IJ.run(imp, "Median...", "radius="+ smooth_kernel_size +" stack");
 		// thresholding by checking the histogram and manually setting the min and max threshold such that
 		// the nucleus is well covered
-		IJ.setAutoThreshold(imp, "Default dark");
-		IJ.setRawThreshold(imp, threshold_min, threshold_max, null);
+		// IJ.setAutoThreshold(imp, "Default dark");
+		// IJ.setRawThreshold(imp, threshold_min, threshold_max, null);
+		IJ.run(imp, "Auto Local Threshold", "method=Bernsen radius=30 parameter_1=0 parameter_2=0 stack");
 		IJ.run(imp, "Convert to Mask", "method=Default background=Dark");
 		imp = imp.duplicate();
 		// filling holes in nucleus for watershedding to work better
-		IJ.run(imp, "Fill Holes", "stack");
+		// IJ.run(imp, "Fill Holes", "stack");
 		// watershedding to separate blobs of nucleus to improve the quality of tracking 
 		IJ.run(imp, "Watershed", "stack");
 	
@@ -211,7 +212,7 @@ public class Mitosis implements PlugIn {
 				// 1. if this spot does not have a previous link, this means mitosis happened
 				// 2. thresholding the mean intensity to screen out false positives because 
 				// when mitosis happens, the intensity of the cell is higher than others
-				if ((spot.previous == null) && (red_mean > threshold) && (green_mean > threshold)) {
+				if ((spot.previous == null) && (red_mean > threshold)) {
 					out[t].add(spot);
 				}
 			}
