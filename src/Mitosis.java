@@ -14,14 +14,14 @@ import ij.process.ImageProcessor;
 public class Mitosis implements PlugIn {
 
 	public void run(String arg) {
-		IJ.selectWindow("red");
+		IJ.selectWindow("red.tif");
 		ImagePlus red = IJ.getImage();
-		IJ.run(red, "Duplicate...", "title=red_ds_copy.tif duplicate");
-		IJ.selectWindow("red_ds_copy.tif");
+		IJ.run(red, "Duplicate...", "title=red_copy.tif duplicate");
+		IJ.selectWindow("red_copy.tif");
 		ImagePlus imp = IJ.getImage();
 		int nt = imp.getNSlices();
 		
-		IJ.selectWindow("green");
+		IJ.selectWindow("green.tif");
 		ImagePlus green = IJ.getImage();
 		System.out.println(green);
 		
@@ -67,7 +67,7 @@ public class Mitosis implements PlugIn {
 		Overlay overlay = new Overlay();
 		draw(overlay, spots, division_spots);
 		System.out.println("finished drawing");
-		IJ.run(red, "Merge Channels...", "c1=red c2=green keep");
+		IJ.run(red, "Merge Channels...", "c1=red.tif c2=green.tif keep");
 		IJ.selectWindow("RGB");
 		ImagePlus rgb = IJ.getImage();
 		rgb.setOverlay(overlay);
