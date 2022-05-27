@@ -11,7 +11,7 @@ import ij.plugin.PlugIn;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 
-public class Tracking implements PlugIn {
+public class Mitosis implements PlugIn {
 
 	public void run(String arg) {
 		IJ.selectWindow("red");
