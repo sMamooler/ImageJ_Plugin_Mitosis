@@ -38,15 +38,15 @@ public class Spot {
 
 	// define the method to draw overlays
 	public void draw(Overlay overlay, boolean mitosis) {
-		// if this spot is mitosis, draw with a green thick stroke
-		this.roi.setPosition(this.t+1); // display roi in one frame
+		this.roi.setPosition(this.t+1);
+		// if this spot is mitosis, draw its boundary with a red thick stroke
 		if (mitosis == true) {
 			this.roi.setStrokeColor(new Color(255, 0, 0, 200));
 			this.roi.setStrokeWidth(5);
 		}
-		// if this spot is not mitosis, draw with a red think stroke
+		// if this spot is not mitosis, draw its boundary with a yellow thin stroke
 		else {
-			this.roi.setStrokeColor(new Color(255, 255, 255, 120));
+			this.roi.setStrokeColor(new Color(255, 255, 0, 120));
 			this.roi.setStrokeWidth(2);
 		}
 		

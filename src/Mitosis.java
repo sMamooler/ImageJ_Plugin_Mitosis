@@ -195,32 +195,23 @@ public class Mitosis implements PlugIn {
 	// function to detect mitosis
 	private ArrayList<Spot>[] filter(ArrayList<Spot> spots[], ImagePlus imp, double intensity_threshold, double area_threshold) {
 		int nt = spots.length;
-		ImageProcessor ip = imp.getProcessor();
 		// create an array list to store all the mitosis spots in each frame
 		ArrayList<Spot> out[] = new Spots[nt];
 		for (int t = 1; t < nt; t++) {
 			imp.setSlice(t);
 			out[t] = new Spots();
-			// compute the mean intensity of the ROI of the this spot
+			// compute the mean intensity of the red channel of the ROI of the this spot
 			for (Spot spot : spots[t]) {
 				double red_mean = spot.red_mean_intensity;
-				double green_mean = spot.green_mean_intensity;
-				
-//				for (Point p : spot.roi) {
-//					mean = mean + ip.getPixelValue(p.x, p.y);
-//				}
-//				mean = mean / spot.roi.size();
-				// we use 2 criteria to detect mitosis:
-				// 1. if this spot does not have a previous link, this means mitosis happened
-				// 2. thresholding the mean intensity to screen out false positives because 
-				// when mitosis happens, the intensity of the cell is higher than others
-				
+				// check if the previous link is empty 
 				if (spot.previous==null) {
+					// prune false positives by checking the absolute values of the mean intensity and the area of the ROI
 					if (red_mean > intensity_threshold && spot.area < area_threshold) {
 						out[t].add(spot);
-						System.out.println("no prev");
+						System.out.println("no previous link");
 					}	
 				} else {
+					// further prune false positives with a previous link by checking the local mean and local area
 					if (red_mean > 1.5*spot.previous.red_mean_intensity && spot.area < spot.previous.area/2) {
 						out[t].add(spot);
 						System.out.println("getting smaller and brighter");
