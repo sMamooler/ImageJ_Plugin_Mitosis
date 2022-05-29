@@ -1,4 +1,4 @@
-<project name="ImageJ-Plugin-Mitosis" default="" basedir=".">
+<project name="ImageJ_Plugin_Mitosis" default="" basedir=".">
     <description>
     	ImageJ-Plugin-Mitosis build file
     </description>
