@@ -23,5 +23,9 @@ The goal of this project is to implement an ImageJ plugin for the detection and 
 5. Once the analysis is done you can find the detection and tracking results in the **RGB** window. Mitosis is indicated with thick red lines.
 6. The growth rate of all frames can be found in **Rate of Growth of Cells**
 
+## Results
+
+The result of mitosis detection for all 206 frames can be foudn in [the shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fresults).
+
 
 
