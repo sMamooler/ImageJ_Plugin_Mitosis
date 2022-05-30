@@ -13,7 +13,7 @@ The goal of this project is to implement an ImageJ plugin for the detection and 
 
 3. Download the files **red.tif** and **green.tif** from [this shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Foriginal_data).
 
-**NOTE**: **red.tif** and **green.tif** include the entire dataset (205 frames). You can also find sub-samples containing [the first 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fds_start1_data), and [the middle 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fds_start100_data) in the shared drive.
+**NOTE**: **red.tif** and **green.tif** include the entire dataset (205 frames). You can also find sub-samples containing [the first 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fsample_1to49), and [the middle 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fsample_100to149) in the shared drive.
 
 ## User Manual
 1. Open ImageJ.
