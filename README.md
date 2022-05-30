@@ -20,7 +20,7 @@ The goal of this project is to implement an ImageJ plugin for the detection and 
 2. Drag and drop **red.tif** and **green.tif**
 3. Go to **Plugins** menu and click on **Mitosis_Detection**. 
 4. Click on **Mitosis** to start the analysis.
-5. Once the analysis is done you can find the detection and tracking results in the **RGB** window.Mitosis is indicated with tick red lines.
+5. Once the analysis is done you can find the detection and tracking results in the **RGB** window. Mitosis is indicated with thick red lines.
 6. The growth rate of all frames can be found in **Rate of Growth of Cells**
 
 
