@@ -25,7 +25,7 @@ The goal of this project is to implement an ImageJ plugin for the detection and 
 
 ## Results
 
-The result of mitosis detection for all 206 frames can be foudn in [the shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fresults).
+The results of mitosis detection for all 206 frames can be found in [the shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fresults).
 
 
 
