@@ -7,8 +7,11 @@ The goal of this project is to implement an ImageJ plugin for the detection and 
 
 ## Setup
 
-1. Download [ImageJ_Plugin_Mitosis]() into the **plugins** folder of your **fiji** directory. This is where all other plugins exist.
-2. Download the files **red.tif** and **green.tif** from [this shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Foriginal_data).
+1. Download [ImageJ_Plugin_Mitosis.jar](https://github.com/sMamooler/ImageJ_Plugin_Mitosis/blob/main/ImageJ_Plugin_Mitosis.jar) and put it in the **plugins** folder of your **fiji** directory. This is where all other plugins exist.
+
+**NOTE**: we have use the [Auto Local Threshold plugin](https://imagej.net/plugins/auto-local-threshold) which is probably already in your ImageJ plugins. if not, you can download [auto_threshold.jar](https://github.com/sMamooler/ImageJ_Plugin_Mitosis/blob/main/auto_threshold.jar) and put it in the **plugins** folder of your **fiji** directory.
+
+3. Download the files **red.tif** and **green.tif** from [this shared drive](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Foriginal_data).
 
 **NOTE**: **red.tif** and **green.tif** include the entire dataset (205 frames). You can also find sub-samples containing [the first 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fds_start1_data), and [the middle 50 frames](https://drive.switch.ch/index.php/s/VzpRO3yznYIPfi0?path=%2Fds_start100_data) in the shared drive.
 
